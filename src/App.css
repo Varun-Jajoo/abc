@@ -36,3 +36,38 @@
     transform: rotate(360deg);
   }
 }
+
+/* Add this CSS to your stylesheet */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.table-responsive table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-responsive th, .table-responsive td {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+@media screen and (max-width: 600px) {
+  .table-responsive th, .table-responsive td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .table-responsive tr {
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .table-responsive tr td:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
+}
