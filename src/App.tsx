@@ -17,21 +17,21 @@ const sampleData = [
       { category: "S 10", values: [200, 195] },
     ]
   },
-  {
-    group: "Group B",
-    categories: [
-      { category: "S 14", values: [160, 165] },
-      { category: "S 15", values: [155, 150] },
-      { category: "S 16", values: [160, 155] },
-      { category: "S 17", values: [165, 160] },
-      { category: "S 18", values: [170, 165] },
-      { category: "S 19", values: [175, 170] },
-      { category: "S 20", values: [180, 175] },
-      { category: "S 21", values: [185, 180] },
-      { category: "S 22", values: [190, 185] },
-      { category: "S 23", values: [195, 190] },
-    ]
-  },
+  // {
+  //   group: "Group B",
+  //   categories: [
+  //     { category: "S 14", values: [160, 165] },
+  //     { category: "S 15", values: [155, 150] },
+  //     { category: "S 16", values: [160, 155] },
+  //     { category: "S 17", values: [165, 160] },
+  //     { category: "S 18", values: [170, 165] },
+  //     { category: "S 19", values: [175, 170] },
+  //     { category: "S 20", values: [180, 175] },
+  //     { category: "S 21", values: [185, 180] },
+  //     { category: "S 22", values: [190, 185] },
+  //     { category: "S 23", values: [195, 190] },
+  //   ]
+  // },
   {
     group: "Group C",
     categories: [
@@ -44,7 +44,7 @@ const sampleData = [
       { category: "S 30", values: [200, 205] },
       { category: "S 31", values: [205, 210] },
       { category: "S 32", values: [210, 215] },
-      { category: "S 33", values: [215,222,222,222,222,220,50,200,222,52] },
+      { category: "S 33", values: [215,222,222,222,222,220,200,222,500] },
     ]
   }
 ];

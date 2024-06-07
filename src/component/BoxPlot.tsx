@@ -109,7 +109,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data }) => {
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
-    const margin = { top: 20, right: 30, bottom: 120, left: 40 }; // Reduced bottom margin
+    const margin = { top: 120, right: 30, bottom: 120, left: 40 }; // Reduced bottom margin
     const width = dimensions.width - margin.left - margin.right;
     const height = dimensions.height - margin.top - margin.bottom;
 
@@ -148,7 +148,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data }) => {
     }))) || 0;
 
     const dataRange = maxY - minY;
-    const yBuffer = dataRange * 0.6;
+    const yBuffer = dataRange * 0.1;
 
     const y = d3.scaleLinear()
       .domain([minY - yBuffer, maxY + yBuffer])
@@ -252,7 +252,7 @@ if(groups.length < 2){
       group: groupData.group,
       mean: d3.mean(groupData.categories.flatMap(c => c.values)) || 0
     }));
-    if(groups.length < 2){
+    if(groups.length <2){
 
     data.forEach((groupData) => {
       groupData.intervals?.forEach((interval) => {
@@ -353,7 +353,9 @@ if(groups.length < 2){
             const totalOutliers = categoryData.values.filter(v => isOutlier([v], categoryData.values)).length;
             const yPos = y(value);
             const offset = 15 * (outlierIndex - Math.floor(totalOutliers / 2)); 
-            const offset1 = (outlierIndex - Math.floor(totalOutliers *3.5)) * 12.4
+            const offset1 = 17 * (outlierIndex - Math.floor(totalOutliers / 2)); 
+
+            
           
 
           if (outlier) {
@@ -365,7 +367,7 @@ if(groups.length < 2){
                 .attr('fill', 'red');
               categoryG.append('text')
                 .attr('x', x1.bandwidth() / 2)
-                .attr('y', offset1+20)
+                .attr('y', 110-offset1)
                 .attr('text-anchor', 'middle')
                 .attr('fill', 'red')
                 .text(value.toFixed(2));
@@ -501,7 +503,7 @@ if(groups.length < 2){
         <tr>
           <td>Standard deviation across samples</td>
           <td>{stats.stdDevAcrossSamples.toFixed(2)}</td>
-          <td>No. of outliers</td>
+          <td>No. of outliers exeeding the limits</td>
           <td>{stats.outliersCount}</td>
         </tr>
         <tr>
