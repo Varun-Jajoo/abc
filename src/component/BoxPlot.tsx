@@ -503,7 +503,7 @@ if(groups.length < 2){
         <tr>
           <td>Standard deviation across samples</td>
           <td>{stats.stdDevAcrossSamples.toFixed(2)}</td>
-          <td>No. of outliers exeeding the limits</td>
+          <td>No. of outliers exceeding the limits</td>
           <td>{stats.outliersCount}</td>
         </tr>
         <tr>
