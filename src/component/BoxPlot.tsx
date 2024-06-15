@@ -1,3 +1,26 @@
+// const sampleData = [
+  //   {
+  //     group: "Group A",
+  //     categories: [
+  //       { category: "S 1", values: [150, 155] },
+  //       { category: "S 2", values: [160, 150] },
+  //     ],
+  //     intervals: [
+  //       {
+  //         type: "confidence interval",
+  //         percentage: "95%",
+  //         values: [-10000, 10000],
+  //       },
+  //       {
+  //         type: "tolerance interval",
+  //         percentage: "95%",
+  //         values: [-20000, 20000],
+  //       },
+  //     ],
+  //   },
+  // ];
+
+
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
@@ -140,15 +163,26 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data }) => {
       const stats = calculateBoxPlotStats(categoryData.values);
       return [stats.max + stats.stdDev, stats.min - stats.stdDev];
     }))) || 0;
-    console.log(maxY);
+    
 
     const minY = d3.min(data.flatMap(groupData => groupData.categories.flatMap(categoryData => {
       const stats = calculateBoxPlotStats(categoryData.values);
       return [stats.max + stats.stdDev, stats.min - stats.stdDev];
     }))) || 0;
-
-    const dataRange = maxY - minY;
-    const yBuffer = dataRange * 0.1;
+    const calculateMaxCategoryStdDev = (data: BoxPlotGroupData[]): number => {
+      let maxStdDev = 0;
+    
+      data.forEach((group) => {
+        group.categories.forEach((category) => {
+          const stdDev = d3.deviation(category.values) || 0; // Calculate standard deviation
+          maxStdDev = Math.max(maxStdDev, stdDev); // Update maxStdDev if current stdDev is greater
+        });
+      });
+    
+      return maxStdDev;
+    };
+   
+    const yBuffer = calculateMaxCategoryStdDev(data)*1.5;
 
     const y = d3.scaleLinear()
       .domain([minY - yBuffer, maxY + yBuffer])
@@ -443,7 +477,7 @@ if(groups.length < 2){
 
   const isOutlier = (values: number[], allValues: number[]): boolean => {
     const { outliers } = calculateBoxPlotStats(allValues);
-    console.log(outliers);
+   
     return values.some(value => outliers.includes(value));
   };
 
