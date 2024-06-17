@@ -1,28 +1,6 @@
-// const sampleData = [
-  //   {
-  //     group: "Group A",
-  //     categories: [
-  //       { category: "S 1", values: [150, 155] },
-  //       { category: "S 2", values: [160, 150] },
-  //     ],
-  //     intervals: [
-  //       {
-  //         type: "confidence interval",
-  //         percentage: "95%",
-  //         values: [-10000, 10000],
-  //       },
-  //       {
-  //         type: "tolerance interval",
-  //         percentage: "95%",
-  //         values: [-20000, 20000],
-  //       },
-  //     ],
-  //   },
-  // ];
-
-
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import '../App.css'; // Create this CSS file for styling
 
 interface BoxPlotCategoryData {
   category: string;
@@ -58,14 +36,12 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data }) => {
   
   function countTotalCategories(data: BoxPlotGroupData[]): number {
     let totalCategories = 0;
-
     data.forEach((group) => {
       totalCategories += group.categories.length;
       if (totalCategories > 50) {
         alert(`Total categories exceed limit of 50. Printing first 50 categories only`);
       }
     });
-
     return totalCategories;
   }
 
@@ -106,15 +82,12 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data }) => {
   const modifyCategories = (data: BoxPlotGroupData[]): void => {
     const seenCategories: Record<string, string> = {};
     let totalCategories = 0;
-
     data.forEach((group: BoxPlotGroupData) => {
       group.categories = group.categories.slice(0, 50 - totalCategories); // Limit to remaining slots
       totalCategories += group.categories.length;
-
       if (totalCategories > 50) {
         throw new Error('Total categories exceed limit of 50');
       }
-
       group.categories.forEach((category) => {
         const groupName = group.group;
         const categoryName = category.category;
@@ -182,7 +155,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data }) => {
       return maxStdDev;
     };
    
-    const yBuffer = calculateMaxCategoryStdDev(data)*1.5;
+    const yBuffer = calculateMaxCategoryStdDev(data)*2;
 
     const y = d3.scaleLinear()
       .domain([minY - yBuffer, maxY + yBuffer])
@@ -537,7 +510,7 @@ if(groups.length < 2){
         <tr>
           <td>Standard deviation across samples</td>
           <td>{stats.stdDevAcrossSamples.toFixed(2)}</td>
-          <td>No. of outliers exceeding the limits</td>
+          <td>No. of outliers</td>
           <td>{stats.outliersCount}</td>
         </tr>
         <tr>
@@ -554,3 +527,4 @@ if(groups.length < 2){
 };
 
 export default BoxPlot;
+
