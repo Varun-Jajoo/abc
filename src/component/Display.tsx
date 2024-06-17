@@ -86,7 +86,6 @@ const processIntervalData = (data: any[]): BoxPlotGroupData[] => {
     const intervalValue1 = row['Interval Value 1'];
     const intervalValue2 = row['Interval Value 2'];
 
-    // Ensure group is initialized
     if (!groups[group]) {
       groups[group] = {
         group,
@@ -95,32 +94,13 @@ const processIntervalData = (data: any[]): BoxPlotGroupData[] => {
       };
     }
 
-    // Ensure categories array is initialized
-    if (!groups[group].categories) {
-      groups[group].categories = [];
-    }
-
-    // Find or create category within categories array
     let categoryObj = groups[group].categories.find(cat => cat.category === category);
     if (!categoryObj) {
       categoryObj = { category, values: [] };
       groups[group].categories.push(categoryObj);
     }
 
-    // Add values to the category
     categoryObj.values.push(value1, value2);
-
-    // Ensure intervals array is initialized
-    if (!groups[group].intervals) {
-      groups[group].intervals = [];
-    }
-
-    // Push interval data to intervals array
-    // groups[group].intervals.push({
-    //   type: intervalType,
-    //   percentage: intervalPercentage,
-    //   values: [intervalValue1, intervalValue2]
-    // });
   });
 
   return Object.values(groups);
@@ -129,6 +109,10 @@ const processIntervalData = (data: any[]): BoxPlotGroupData[] => {
 const App2: React.FC = () => {
   const [graphData, setGraphData] = useState<GroupData[]>([]);
   const [boxPlotData, setBoxPlotData] = useState<BoxPlotGroupData[]>([]);
+  const [xAxisLabel, setXAxisLabel] = useState<string>('Gluten concentration (mg/kg)');
+  const [yAxisLabel, setYAxisLabel] = useState<string>('LPOD');
+  const [log, setLog] = useState<number | undefined>(4);
+  const [drop, setDrop] = useState<boolean>(false);
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -163,13 +147,42 @@ const App2: React.FC = () => {
     }
   };
 
+  const handleXAxisLabelChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setXAxisLabel(event.target.value);
+  };
+
+  const handleYAxisLabelChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setYAxisLabel(event.target.value);
+  };
+
+  const handleLogChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setLog(parseInt(event.target.value));
+  };
+
+  const handleDropChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setDrop(event.target.checked);
+  };
+
   return (
     <div>
-      <div>
+      <div style={{paddingLeft: '20px'}}>
         <h3>Upload Data for Graph:</h3>
-        <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
-        <GlutenDetectionGraph data={graphData} xAxisLabel="Gluten concentration (mg/kg)" yAxisLabel="LPOD" log={4} />
-      </div>
+        <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} /> <br />
+        <label>X Axis Label:</label> 
+        <input type='text' value={xAxisLabel} onChange={handleXAxisLabelChange} />
+        <br />
+        <label>Y Axis Label:</label>
+        <input type='text' value={yAxisLabel} onChange={handleYAxisLabelChange} />
+        <br />
+        <label>Log:</label>
+        <input type='number' value={log || ''} onChange={handleLogChange} />
+        <br />
+        <label>Drop:</label>
+        <input type='checkbox' checked={drop} onChange={handleDropChange} />
+        <br />
+        </div>
+        <GlutenDetectionGraph data={graphData} xAxisLabel={xAxisLabel} yAxisLabel={yAxisLabel} log={log} drop={drop} />
+      
       <div>
         <h3>Upload Data for Box Plot:</h3>
         <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
