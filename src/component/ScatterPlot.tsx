@@ -5,8 +5,8 @@ const MARGIN = { top: 20, right: 30, bottom: 50, left: 50 };
 
 function calculateMean(dataset: { x: number; y: number }[]): [number, number] {
   const n = dataset.length;
-  const sumX = dataset.reduce((acc: number, point: any) => acc + point.x, 0);
-  const sumY = dataset.reduce((acc: number, point: any) => acc + point.y, 0);
+  const sumX = dataset.reduce((acc: number, point) => acc + point.x, 0);
+  const sumY = dataset.reduce((acc: number, point) => acc + point.y, 0);
   const meanX = sumX / n;
   const meanY = sumY / n;
   return [meanX, meanY];
@@ -112,7 +112,7 @@ function plotErrorEllipse(
 function kernelDensityEstimator(kernel: (v: number) => number, x: number[]) {
   return function (sample: number[]) {
     return x.map(function (x) {
-      return [x, d3.mean(sample, (v) => kernel(x - v))!] as [number, number];
+      return [x, d3.mean(sample, (v:number) => kernel(x - v))!] as [number, number];
     });
   };
 }
@@ -123,13 +123,14 @@ function epanechnikovKernel(scale: number) {
   };
 }
 
-function calculateScale(lenX: number) {
-  if (lenX < 100) {
-    return 10;
-  } else {
-    return 40;
-  }
-}
+// function calculateScaleX(lenX:number,boundsHeight:number){
+//   console.log(lenX);
+//   if(lenX<100){
+//     return 200;
+//   } else {
+//     return 250;
+//   }
+// }
 
 function calculateBufferMultiplier(rangeX: number, rangeY: number) {
   if ((rangeX > 30 && rangeX < 45) || (rangeY > 30 && rangeY < 45)) {
@@ -170,10 +171,10 @@ const Scatterplot: React.FC<{
     const boundsWidth = width - MARGIN.right - MARGIN.left;
     const boundsHeight = height - MARGIN.top - MARGIN.bottom;
     const g = svg
-      .attr("width", width + MARGIN.left + MARGIN.right)
-      .attr("height", height + MARGIN.top + MARGIN.bottom)
+      .attr("width", width + MARGIN.left + MARGIN.right + 0.4 * boundsWidth)
+      .attr("height", height + MARGIN.top + MARGIN.bottom + 0.4 * boundsHeight)
       .append("g")
-      .attr("transform", `translate(${MARGIN.left},${MARGIN.bottom + 20})`);
+      .attr("transform", `translate(${MARGIN.left},${MARGIN.bottom + 100})`);
 
     const colors = d3.schemeCategory10;
 
@@ -185,10 +186,10 @@ const Scatterplot: React.FC<{
       calculateCovarianceMatrix(dataset, mu[index])
     );
 
-    const maxX = d3.max(datasets.flat(), (d) => d.x) || 10;
-    const maxY = d3.max(datasets.flat(), (d) => d.y) || 10;
-    const minX = d3.min(datasets.flat(), (d) => d.x) || 0;
-    const minY = d3.min(datasets.flat(), (d) => d.y) || 0;
+    const maxX = d3.max(datasets.flat(), (d:any) => d.x) || 10;
+    const maxY = d3.max(datasets.flat(), (d:any) => d.y) || 10;
+    const minX = d3.min(datasets.flat(), (d:any) => d.x) || 0;
+    const minY = d3.min(datasets.flat(), (d:any) => d.y) || 0;
 
     const rangeX = maxX - minX;
     const rangeY = maxY - minY;
@@ -207,16 +208,16 @@ const Scatterplot: React.FC<{
     const yScale = d3
       .scaleLinear()
       .domain([minY - bufferY, maxY + bufferY])
-      .range([boundsHeight, 0]);
+      .range([boundsHeight + 0.2 * boundsHeight, 0]);
 
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
     g.append("g")
-      .attr("transform", `translate(0,${boundsHeight})`)
+      .attr("transform", `translate(0,${boundsHeight + 0.2 * boundsHeight})`)
       .call(xAxis)
-      .call((g) => g.selectAll(".domain, .tick line").attr("stroke", "#000"))
-      .call((g) => g.selectAll(".tick text").attr("fill", "#000"))
+      .call((g:any) => g.selectAll(".domain, .tick line").attr("stroke", "#000"))
+      .call((g:any) => g.selectAll(".tick text").attr("fill", "#000"))
       .append("text")
       .attr("class", "x-axis-label")
       .attr("fill", "#000")
@@ -227,8 +228,8 @@ const Scatterplot: React.FC<{
 
     g.append("g")
       .call(yAxis)
-      .call((g) => g.selectAll(".domain, .tick line").attr("stroke", "#000"))
-      .call((g) => g.selectAll(".tick text").attr("fill", "#000"))
+      .call((g:any) => g.selectAll(".domain, .tick line").attr("stroke", "#000"))
+      .call((g:any) => g.selectAll(".tick text").attr("fill", "#000"))
       .append("text")
       .attr("class", "y-axis-label")
       .attr("fill", "#000")
@@ -246,8 +247,8 @@ const Scatterplot: React.FC<{
         .enter()
         .append("circle")
         .attr("class", `dot${i}`)
-        .attr("cx", (d) => xScale(d.x))
-        .attr("cy", (d) => yScale(d.y))
+        .attr("cx", (d: { x: number; y: number }) => xScale(d.x))
+        .attr("cy", (d: { x: number; y: number }) => yScale(d.y))
         .attr("stroke", color)
         .attr("stroke-opacity", 1)
         .attr("stroke-width", 1)
@@ -265,7 +266,7 @@ const Scatterplot: React.FC<{
 
       legend
         .append("rect")
-        .attr("x", MARGIN.right)
+        .attr("x", MARGIN.right - 2*MARGIN.right)
         .attr("y", MARGIN.top - 10)
         .attr("width", 18)
         .attr("height", 18)
@@ -273,7 +274,7 @@ const Scatterplot: React.FC<{
 
       legend
         .append("text")
-        .attr("x", MARGIN.right - 10)
+        .attr("x", MARGIN.right - 2.5* MARGIN.right)
         .attr("y", MARGIN.top)
         .attr("dy", ".35em")
         .style("text-anchor", "end")
@@ -340,14 +341,19 @@ const Scatterplot: React.FC<{
 
       const kdeXGroup = svg
         .append("g")
-        .attr("transform", `translate(${MARGIN.left},${MARGIN.bottom + 20})`);
+        .attr(
+          "transform",
+          `translate(${MARGIN.left},${MARGIN.bottom + 0.3 * boundsHeight})`
+        );
 
-      const scaleM = calculateScale(kdeDataX.length);
+      const scaleM = 3 * height;
+      console.log(boundsHeight);
+      console.log(scaleM);
 
       const lineX = d3
         .line()
-        .x((d) => xScale(d[0]))
-        .y((d) => -d[1] * scaleM)
+        .x((d: [number, number]) => xScale(d[0]))
+        .y((d: [number, number]) => -d[1] * scaleM)
         .curve(d3.curveBasis);
 
       kdeXGroup
@@ -363,13 +369,15 @@ const Scatterplot: React.FC<{
         .append("g")
         .attr(
           "transform",
-          `translate(${MARGIN.left + boundsWidth},${MARGIN.bottom + 20})`
+          `translate(${MARGIN.left + boundsWidth},${
+            MARGIN.bottom + 0.3 * boundsHeight
+          })`
         );
 
       const lineY = d3
         .line()
-        .x((d) => d[1] * scaleM)
-        .y((d) => yScale(d[0]))
+        .x((d: [number, number]) => d[1] * scaleM)
+        .y((d: [number, number]) => yScale(d[0]))
         .curve(d3.curveBasis);
 
       kdeYGroup

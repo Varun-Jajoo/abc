@@ -2,6 +2,7 @@ import React, { useState, ChangeEvent } from "react";
 import GlutenDetectionGraph from "./Graph2";
 import BoxPlot from "./BoxPlot";
 import Scatterplot from "./ScatterPlot";
+import DensityPlotter from "./DensityPlotter";
 import * as XLSX from "xlsx";
 
 interface Point {
@@ -31,6 +32,7 @@ interface BoxPlotGroupData {
     values: number[];
   }[];
 }
+
 interface ScatterPlotData {
   x: number;
   y: number;
@@ -91,7 +93,6 @@ const processIntervalData = (data: any[]): BoxPlotGroupData[] => {
     const intervalValue1 = row["Interval Value 1"];
     const intervalValue2 = row["Interval Value 2"];
 
-    // Ensure group is initialized
     if (!groups[group]) {
       groups[group] = {
         group,
@@ -100,12 +101,10 @@ const processIntervalData = (data: any[]): BoxPlotGroupData[] => {
       };
     }
 
-    // Ensure categories array is initialized
     if (!groups[group].categories) {
       groups[group].categories = [];
     }
 
-    // Find or create category within categories array
     let categoryObj = groups[group].categories.find(
       (cat) => cat.category === category
     );
@@ -114,20 +113,11 @@ const processIntervalData = (data: any[]): BoxPlotGroupData[] => {
       groups[group].categories.push(categoryObj);
     }
 
-    // Add values to the category
     categoryObj.values.push(value1, value2);
 
-    // Ensure intervals array is initialized
     if (!groups[group].intervals) {
       groups[group].intervals = [];
     }
-
-    // Push interval data to intervals array
-    // groups[group].intervals.push({
-    //   type: intervalType,
-    //   percentage: intervalPercentage,
-    //   values: [intervalValue1, intervalValue2]
-    // });
   });
 
   return Object.values(groups);
@@ -152,16 +142,54 @@ const processScatterPlotData = (data: any[]): ScatterPlotData[][] => {
   return Object.values(groups);
 };
 
+const processDensityPlotData = (
+  data: any[]
+): { datasets: number[][]; labels: string[][] } => {
+  const groups: { [key: string]: number[] } = {};
+  const labels: { [key: string]: string[] } = {};
+
+  data.forEach((row) => {
+    const group = row["Group"];
+    const value = row["Value"];
+    const label = row["Label"];
+
+    if (!groups[group]) {
+      groups[group] = [];
+      labels[group] = [];
+    }
+
+    groups[group].push(value);
+    labels[group].push(label);
+  });
+
+  return { datasets: Object.values(groups), labels: Object.values(labels) };
+};
+
 const App2: React.FC = () => {
   const [graphData, setGraphData] = useState<GroupData[]>([]);
   const [boxPlotData, setBoxPlotData] = useState<BoxPlotGroupData[]>([]);
   const [scatterPlotData, setScatterPlotData] = useState<ScatterPlotData[][]>(
     []
   );
+  const [densityPlotData, setDensityPlotData] = useState<number[][]>([]);
+  const [densityPlotLabels, setDensityPlotLabels] = useState<string[][]>([]);
+  const [scatterPlotType, setScatterPlotType] = useState<
+    "ellipse" | "rectangle"
+  >("ellipse");
 
-  // const [kdeData,setKdeData] = useState<KdeData[]>([]);
+  const [bandwidth, setBandwidth] = useState<number>(4);
 
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleBandwidthChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = Number(event.target.value);
+    if (value > 0 && value <= 20) {
+      setBandwidth(value);
+    }
+  };
+
+  const handleFileUpload = (
+    event: ChangeEvent<HTMLInputElement>,
+    plotType: string
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -174,21 +202,33 @@ const App2: React.FC = () => {
           const sheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json<any>(sheet);
 
-          if ((jsonData[0] as any).hasOwnProperty("DataType")) {
-            const processedGraphData = processExcelData(jsonData);
-            setGraphData(processedGraphData);
-            console.log("Processed Graph Data:", processedGraphData);
-          } else if ((jsonData[0] as any).hasOwnProperty("Category")) {
-            const processedBoxPlotData = processIntervalData(jsonData);
-            setBoxPlotData(processedBoxPlotData);
-            console.log("Processed BoxPlot Data:", processedBoxPlotData);
-          } else {
-            const processedScatterPlotData = processScatterPlotData(jsonData);
-            setScatterPlotData(processedScatterPlotData);
-            console.log(
-              "Processed Scatter Plot Data:",
-              processedScatterPlotData
-            );
+          switch (plotType) {
+            case "gluten":
+              const processedGraphData = processExcelData(jsonData);
+              setGraphData(processedGraphData);
+              console.log("Processed Graph Data:", processedGraphData);
+              break;
+            case "boxPlot":
+              const processedBoxPlotData = processIntervalData(jsonData);
+              setBoxPlotData(processedBoxPlotData);
+              console.log("Processed BoxPlot Data:", processedBoxPlotData);
+              break;
+            case "scatterPlot":
+              const processedScatterPlotData = processScatterPlotData(jsonData);
+              setScatterPlotData(processedScatterPlotData);
+              console.log(
+                "Processed Scatter Plot Data:",
+                processedScatterPlotData
+              );
+              break;
+            case "densityPlot":
+              const { datasets, labels } = processDensityPlotData(jsonData);
+              setDensityPlotData(datasets);
+              setDensityPlotLabels(labels);
+              console.log("Processed Density Plot Data:", datasets);
+              break;
+            default:
+              console.error("Unknown plot type");
           }
         }
       };
@@ -201,11 +241,20 @@ const App2: React.FC = () => {
     }
   };
 
+  const handlePlotTypeChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setScatterPlotType(event.target.value as "ellipse" | "rectangle");
+  };
+
+
   return (
     <div>
       <div>
-        <h3>Upload Data for Graph:</h3>
-        <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+        <h3>Upload Data for Gluten Detection Graph:</h3>
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={(event) => handleFileUpload(event, "gluten")}
+        />
         <GlutenDetectionGraph
           data={graphData}
           xAxisLabel="Gluten concentration (mg/kg)"
@@ -215,18 +264,52 @@ const App2: React.FC = () => {
       </div>
       <div>
         <h3>Upload Data for Box Plot:</h3>
-        <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={(event) => handleFileUpload(event, "boxPlot")}
+        />
         <BoxPlot data={boxPlotData} />
       </div>
       <div>
         <h3>Upload Data for Scatter Plot:</h3>
-        <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={(event) => handleFileUpload(event, "scatterPlot")}
+        />
+        <select value={scatterPlotType} onChange={handlePlotTypeChange}>
+          <option value="ellipse">Ellipse</option>
+          <option value="rectangle">Rectangle</option>
+        </select>
         <Scatterplot
           width={600}
           height={400}
           datasets={scatterPlotData}
           labels={scatterPlotData.map((_, index) => `Group ${index + 1}`)}
-          plotType="ellipse"
+          plotType={scatterPlotType}
+        />
+      </div>
+      <div>
+        <h3>Upload Data for Density Plot:</h3>
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={(event) => handleFileUpload(event, "densityPlot")}
+        />
+        <label>Bandwidth:</label>
+        <input
+          type="number"
+          value={bandwidth}
+          onChange={handleBandwidthChange}
+          min="0.1"
+          max="20"
+          step="any"
+        />
+        <DensityPlotter
+          bandwidth={bandwidth}
+          datasets={densityPlotData}
+          labels={densityPlotLabels}
         />
       </div>
     </div>
