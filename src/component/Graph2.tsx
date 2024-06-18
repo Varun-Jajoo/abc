@@ -156,8 +156,8 @@ const GlutenDetectionGraph: React.FC<Props> = ({ data, xAxisLabel, yAxisLabel, d
 
     const line = d3.line()
       .curve(d3.curveMonotoneX)
-      .x((d: DataPoint) => x(d.x))
-      .y((d: DataPoint) => y(d.y));
+      .x((d: any) => x(d.x))
+      .y((d: any) => y(d.y));
 
     const drawLine = (data: DataPoint[], color: string, opacity: number) => {
       svg.append('path')
@@ -169,7 +169,7 @@ const GlutenDetectionGraph: React.FC<Props> = ({ data, xAxisLabel, yAxisLabel, d
         .attr('opacity', opacity);
     };
 
-    const drawSteppingSequence = (data: DataPoint[], curve: DataPoint, color: string) => {
+    const drawSteppingSequence = (data: DataPoint[], curve: any, color: string) => {
       svg.append('path')
         .datum(data)
         .attr('fill', 'none')
@@ -192,9 +192,9 @@ const GlutenDetectionGraph: React.FC<Props> = ({ data, xAxisLabel, yAxisLabel, d
       // Create the area generator
       const areaGenerator = d3.area()
         .curve(d3.curveMonotoneX)
-        .x((d: DataPoint) => x(d.x))
-        .y0((d: DataPoint) => y(d.y))
-        .y1((d: DataPoint,i:number) => y(upperLimit[i].y)); // Use upperLimit array index to access corresponding y value
+        .x((d: any) => x(d.x))
+        .y0((d: any) => y(d.y))
+        .y1((d: any, i: any) => y(upperLimit[i].y)); // Use upperLimit array index to access corresponding y value
 
       // Select the SVG element and append the area path
       svg.select('.area').remove(); // Ensure previous paths are removed to avoid duplication
@@ -213,13 +213,13 @@ const GlutenDetectionGraph: React.FC<Props> = ({ data, xAxisLabel, yAxisLabel, d
         .enter()
         .append('path')
         .attr('class', `lab-detection-${group.name}`)
-        .attr('transform', (d: DataPoint) => `translate(${x(d.x)},${y(d.y)})`)
+        .attr('transform', (d: any) => `translate(${x(d.x)},${y(d.y)})`)
         .attr('d', diamondSymbol)
         .attr('fill', color);
     };
 
     const drawIntersectionLines = (group: GroupData) => {
-      group.labDetectionRates.forEach((d: DataPoint) => {
+      group.labDetectionRates.forEach((d: any) => {
         const xValue = findIntersectionX(group.lpodCurve, d.y);
         if (xValue !== null) {
           svg.append('line')
@@ -251,7 +251,7 @@ const GlutenDetectionGraph: React.FC<Props> = ({ data, xAxisLabel, yAxisLabel, d
         .call(d3.axisBottom(x)
           .ticks(10)
           .tickSize(-height + margin.top + margin.bottom)
-          .tickFormat('' as string));
+          .tickFormat('' as any));
 
       svg.append('g')
         .attr('class', 'grid')
@@ -260,20 +260,20 @@ const GlutenDetectionGraph: React.FC<Props> = ({ data, xAxisLabel, yAxisLabel, d
         .call(d3.axisLeft(y)
           .ticks(10)
           .tickSize(-width + margin.left + margin.right)
-          .tickFormat('' as string));
+          .tickFormat('' as any));
     };
 
     drawGridLines();
 
     const stepFunctionAfter = d3.line()
       .curve(d3.curveStepAfter)
-      .x((d: DataPoint) => x(d.x))
-      .y((d: DataPoint) => y(d.y));
+      .x((d: any) => x(d.x))
+      .y((d: any) => y(d.y));
 
     const stepFunctionBefore = d3.line()
       .curve(d3.curveStepBefore)
-      .x((d: DataPoint) => x(d.x))
-      .y((d: DataPoint) => y(d.y));
+      .x((d: any) => x(d.x))
+      .y((d: any) => y(d.y));
 
     data.forEach(group => {
       group.lpodCurve = sortDataByX(group.lpodCurve);
@@ -322,7 +322,7 @@ const GlutenDetectionGraph: React.FC<Props> = ({ data, xAxisLabel, yAxisLabel, d
       .enter()
       .append('g')
       .attr('class', 'legend-item')
-      .attr('transform', (d: DataPoint,i:number) => `translate(0,${i * 20})`);
+      .attr('transform', (d: any, i: any) => `translate(0,${i * 20})`);
 
     legendItem.append('rect')
       .attr('x', 0)
