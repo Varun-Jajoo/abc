@@ -101,9 +101,7 @@ const processIntervalData = (data: any[]): BoxPlotGroupData[] => {
       };
     }
 
-    if (!groups[group].categories) {
-      groups[group].categories = [];
-    }
+  
 
     let categoryObj = groups[group].categories.find(
       (cat) => cat.category === category
@@ -114,10 +112,6 @@ const processIntervalData = (data: any[]): BoxPlotGroupData[] => {
     }
 
     categoryObj.values.push(value1, value2);
-
-    if (!groups[group].intervals) {
-      groups[group].intervals = [];
-    }
   });
 
   return Object.values(groups);
@@ -168,6 +162,10 @@ const processDensityPlotData = (
 const App2: React.FC = () => {
   const [graphData, setGraphData] = useState<GroupData[]>([]);
   const [boxPlotData, setBoxPlotData] = useState<BoxPlotGroupData[]>([]);
+  const [xAxisLabel, setXAxisLabel] = useState<string>('Gluten concentration (mg/kg)');
+  const [yAxisLabel, setYAxisLabel] = useState<string>('LPOD');
+  const [log, setLog] = useState<number | undefined>(4);
+  const [drop, setDrop] = useState<boolean>(false);
   const [scatterPlotData, setScatterPlotData] = useState<ScatterPlotData[][]>(
     []
   );
@@ -248,20 +246,28 @@ const App2: React.FC = () => {
 
   return (
     <div>
-      <div>
+      <div style={{paddingLeft: '20px'}}>
         <h3>Upload Data for Gluten Detection Graph:</h3>
         <input
           type="file"
           accept=".xlsx, .xls"
           onChange={(event) => handleFileUpload(event, "gluten")}
-        />
-        <GlutenDetectionGraph
-          data={graphData}
-          xAxisLabel="Gluten concentration (mg/kg)"
-          yAxisLabel="LPOD"
-          log={4}
-        />
-      </div>
+        /> <br />
+        <label>X Axis Label:</label> 
+        <input type='text' value={xAxisLabel} onChange={handleXAxisLabelChange} />
+        <br />
+        <label>Y Axis Label:</label>
+        <input type='text' value={yAxisLabel} onChange={handleYAxisLabelChange} />
+        <br />
+        <label>Log:</label>
+        <input type='number' value={log || ''} onChange={handleLogChange} />
+        <br />
+        <label>Drop:</label>
+        <input type='checkbox' checked={drop} onChange={handleDropChange} />
+        <br />
+        </div>
+        <GlutenDetectionGraph data={graphData} xAxisLabel={xAxisLabel} yAxisLabel={yAxisLabel} log={log} drop={drop} />
+      
       <div>
         <h3>Upload Data for Box Plot:</h3>
         <input

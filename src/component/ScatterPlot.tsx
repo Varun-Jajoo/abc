@@ -113,6 +113,7 @@ function kernelDensityEstimator(kernel: (v: number) => number, x: number[]) {
   return function (sample: number[]) {
     return x.map(function (x) {
       return [x, d3.mean(sample, (v:number) => kernel(x - v))!] as [number, number];
+      return [x, d3.mean(sample, (v:number) => kernel(x - v))!] as [number, number];
     });
   };
 }
@@ -336,8 +337,8 @@ const Scatterplot: React.FC<{
         yScale.ticks(100)
       );
 
-      const kdeDataX = kdeX(data.map((d) => d.x));
-      const kdeDataY = kdeY(data.map((d) => d.y));
+      const kdeDataX = kdeX(data.map((d:any) => d.x));
+      const kdeDataY = kdeY(data.map((d:any) => d.y));
 
       const kdeXGroup = svg
         .append("g")
