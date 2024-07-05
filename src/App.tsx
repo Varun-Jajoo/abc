@@ -13,7 +13,7 @@ const data =
       "categories": [
         {
           "category": "Category 1",
-          "values": [15, 18, 21, 25, 19, 17, 20, 23, 24, 22,100]
+          "values": [15, 18, 21, 25, 19, 17, 20, 23, 24, 22,54]
         },
         {
           "category": "Category 2",
