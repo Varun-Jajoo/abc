@@ -177,6 +177,9 @@ const processDensityPlotData = (
   return { datasets: Object.values(groups), labels: Object.values(labels) };
 };
 
+
+
+
 const App2: React.FC = () => {
   const [graphData, setGraphData] = useState<GroupData[]>([]);
   const [boxPlotData, setBoxPlotData] = useState<BoxPlotGroupData[]>([]);
@@ -266,7 +269,7 @@ const App2: React.FC = () => {
     <div>
       <div>
         <h3>Upload Data for Graph:</h3>
-        <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+        <input type="file" accept=".xlsx, .xls" onChange={(e) => handleFileUpload(e, "gluten")} />
         <GlutenDetectionGraph data={graphData} xAxisLabel="Gluten concentration (mg/kg)" yAxisLabel="LPOD" log={4} />
       </div>
       <div>
