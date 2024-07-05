@@ -147,7 +147,7 @@ const data =
   return (
     <>
     <BoxPlot data={data}/>
-    <FlagChartMain SwitchedAxis={true} data={data2}/>
+    <FlagChartMain SwitchedAxis={false} data={data2}/>
     
     </>
   )

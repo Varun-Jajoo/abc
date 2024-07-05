@@ -70,7 +70,7 @@ useEffect(() => {
             .attr('width', width)
             .attr('height', height)
             .attr('fill', i % 2 === 0 ? 'lightgrey' : 'white')
-            .attr('opacity', 0.5);
+            .attr('opacity', 0.3);
     });
 
     samples.forEach((sample, i) => {
