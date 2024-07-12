@@ -22,6 +22,8 @@ interface BoxPlotProps {
 }
 
 const BoxPlot: React.FC<BoxPlotProps> = ({ data }) => {
+  const [tooltipContent, setTooltipContent] = useState('');
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 400 });
   const [stats, setStats] = useState({
@@ -313,100 +315,217 @@ if(groups.length < 2){
         .attr('y2', groupMeanY)
         .attr('stroke', lightenedColor)
         .attr('stroke-width', 2)
-        .style('stroke-dasharray', '4'); // Optionally, add dash style to distinguish mean lines
-    });
-
-    const groupG = chart.append('g');
-
-    groupG.selectAll('rect')
-      .data(data.flatMap(groupData => groupData.categories.map(categoryData => ({
-        group: groupData.group,
-        category: categoryData.category,
-        values: categoryData.values
-      }))))
-      .enter()
-      .append('rect')
-      .attr('x', (d: any) => x1(d.category)!)
-      .attr('y', (d:any ) => y(calculateBoxPlotStats(d.values).min + calculateBoxPlotStats(d.values).stdDev))
-      .attr('height', (d: any) => y(calculateBoxPlotStats(d.values).max - calculateBoxPlotStats(d.values).stdDev) - y(calculateBoxPlotStats(d.values).min + calculateBoxPlotStats(d.values).stdDev))
-      .attr('width', x1.bandwidth())
-      .attr('stroke', (d: any) => DarkColor(color(d.group) as string))
-      .style('fill', (d: any) => lightenColor(color(d.group) as string));
-
-    groupG.selectAll('line')
-      .data(data.flatMap(groupData => groupData.categories.map(categoryData => ({
-        group: groupData.group,
-        category: categoryData.category,
-        values: categoryData.values
-      }))))
-      .enter()
-      .append('line')
-      .attr('x1', (d:any ) => x1(d.category)!)
-      .attr('x2', (d: any) => x1(d.category)! + x1.bandwidth())
-      .attr('y1', (d: any) => y(calculateBoxPlotStats(d.values).median))
-      .attr('y2', (d: any) => y(calculateBoxPlotStats(d.values).median))
-      .attr('stroke', (d: any) =>  DarkestColor(color(d.group) as string))
-      .style('width', 80);
-
-    data.forEach(groupData => {
-      groupData.categories.forEach(categoryData => {
-        const categoryG = groupG.append('g')
-          .attr('class', 'category')
-          .attr('transform', `translate(${x1(categoryData.category)!},${0})`);
-
-          categoryData.values.forEach((value, index) => {
-            const outlier = isOutlier([value], categoryData.values);
-            const outlierIndex = categoryData.values.indexOf(value);
-            const totalOutliers = categoryData.values.filter(v => isOutlier([v], categoryData.values)).length;
-            const yPos = y(value);
-            const offset = 15 * (outlierIndex - Math.floor(totalOutliers / 2)); 
-            const offset1 = 17 * (outlierIndex - Math.floor(totalOutliers / 2)); 
-
-            
-          
-
-          if (outlier) {
-            if (yPos < 0) {
-              // Plot outlier arrow at the top extreme
-              categoryG.append('path')
-                .attr('d', d3.symbol().type(d3.symbolTriangle).size(100)())
-                .attr('transform', `translate(${x1.bandwidth() / 2}, 0) rotate(0)`)
-                .attr('fill', 'red');
-              categoryG.append('text')
-                .attr('x', x1.bandwidth() / 2)
-                .attr('y', 110-offset1)
-                .attr('text-anchor', 'middle')
-                .attr('fill', 'red')
-                .text(value.toFixed(2));
-            } else if (yPos > height) {
-              // Plot outlier arrow at the bottom extreme
-              categoryG.append('path')
-                .attr('d', d3.symbol().type(d3.symbolTriangle).size(100)())
-                .attr('transform', `translate(${x1.bandwidth() / 2}, ${height}) rotate(180)`)
-                .attr('fill', 'red');
-              categoryG.append('text')
-                .attr('x', x1.bandwidth() / 2)
-                .attr('y', height -offset- 25)
-                .attr('text-anchor', 'middle')
-                .attr('fill', 'red')
-                .text(value.toFixed(2));
-            } else {
-              categoryG.append('path')
-                .attr('d', d3.symbol().type(d3.symbolDiamond).size(50)())
-                .attr('transform', `translate(${x1.bandwidth() / 2},${y(value)})`)
-                .attr('fill', DarkColor(color(groupData.group) as string))
-                .attr('stroke', 'red');
-            }
-          } else {
-            categoryG.append('path')
-              .attr('d', d3.symbol().type(d3.symbolDiamond).size(50)())
-              .attr('transform', `translate(${x1.bandwidth() / 2},${y(value)})`)
-              .attr('fill', DarkColor(color(groupData.group) as string))
-              .attr('stroke', 'black');
+        .style('stroke-dasharray', '4')
+        .on('mouseover', (event:any, d:any) => {
+           
+          const content = `
+           <div>Value: ${groupMean.mean}</div> 
+          `;
+          setTooltipContent(content);
+          tooltip.style('visibility', 'visible');
+        })
+        .on('mousemove', (event:any) => {
+          const tooltip = tooltipRef.current;
+          if (tooltip) {
+            tooltip.style.top = `${event.pageY}px`;
+            tooltip.style.left = `${event.pageX}px`;
           }
-        });
-      });
+          
+        })
+        .on('mouseleave', () => {
+          tooltip.style('visibility', 'hidden');
+        }); // Optionally, add dash style to distinguish mean lines
     });
+    const tooltip = d3.select(tooltipRef.current);
+const groupG = chart.append('g');
+
+// Helper function to set tooltip content
+const setTooltipContent = (content: string) => {
+  const tooltipElement = tooltipRef.current;
+  if (tooltipElement) {
+    tooltipElement.innerHTML = content;
+  }
+};
+
+groupG.selectAll('rect')
+  .data(data.flatMap(groupData => groupData.categories.map(categoryData => ({
+    group: groupData.group,
+    category: categoryData.category,
+    values: categoryData.values
+  }))))
+  .enter()
+  .append('rect')
+  .attr('x', (d:any) => x1(d.category)!)
+  .attr('y', (d:any) => y(calculateBoxPlotStats(d.values).min + calculateBoxPlotStats(d.values).stdDev))
+  .attr('height', (d:any) => y(calculateBoxPlotStats(d.values).max - calculateBoxPlotStats(d.values).stdDev) - y(calculateBoxPlotStats(d.values).min + calculateBoxPlotStats(d.values).stdDev))
+  .attr('width', x1.bandwidth())
+  .attr('stroke', (d:any) => DarkColor(color(d.group) as string))
+  .style('fill', (d:any) => lightenColor(color(d.group) as string))
+  .on('mouseover', (event:any, d:any) => {
+    const stats = calculateBoxPlotStats(d.values);
+    const content = `
+
+      <div>Group: ${d.group}</div>
+      <div>Category: ${d.category}</div>
+      <div>Min: ${stats.min}</div>
+      <div>Q1: ${stats.q1}</div>
+      <div>Median: ${stats.median}</div>
+      <div>Q3: ${stats.q3}</div>
+      <div>Max: ${stats.max}</div>
+      <div>Mean: ${stats.mean}</div>
+      <div>Std Dev: ${stats.stdDev}</div>
+    `;
+    setTooltipContent(content);
+    tooltip.style('visibility', 'visible');
+  })
+  .on('mousemove', (event:any) => {
+    const tooltip = tooltipRef.current;
+    if (tooltip) {
+      
+      tooltip.style.top = `${event.pageY}px`;
+      tooltip.style.left = `${event.pageX}px`;
+    }
+  })
+  .on('mouseleave', () => {
+    tooltip.style('visibility', 'hidden');
+  });
+
+groupG.selectAll('line')
+  .data(data.flatMap(groupData => groupData.categories.map(categoryData => ({
+    group: groupData.group,
+    category: categoryData.category,
+    values: categoryData.values
+  }))))
+  .enter()
+  .append('line')
+  .attr('x1', (d:any) => x1(d.category)!)
+  .attr('x2', (d:any) => x1(d.category)! + x1.bandwidth())
+  .attr('y1', (d:any) => y(calculateBoxPlotStats(d.values).median))
+  .attr('y2', (d:any) => y(calculateBoxPlotStats(d.values).median))
+  .attr('stroke', (d:any) => DarkestColor(color(d.group) as string))
+  .style('width', 80)
+  .on('mouseover', (event:any, d:any) => {
+           
+    const content = `
+     <div>Value: ${calculateBoxPlotStats(d.values).median}</div> 
+    `;
+    setTooltipContent(content);
+    tooltip.style('visibility', 'visible');
+  })
+  .on('mousemove', (event:any) => {
+    const tooltip = tooltipRef.current;
+    if (tooltip) {
+      tooltip.style.top = `${event.pageY}px`;
+      tooltip.style.left = `${event.pageX}px`;
+    }
+    
+  })
+  .on('mouseleave', () => {
+    tooltip.style('visibility', 'hidden');
+  });
+
+data.forEach(groupData => {
+  groupData.categories.forEach(categoryData => {
+    const categoryG = groupG.append('g')
+      .attr('class', 'category')
+      .attr('transform', `translate(${x1(categoryData.category)!}, ${0})`);
+
+    categoryData.values.forEach((value, index) => {
+      const outlier = isOutlier([value], categoryData.values);
+      const outlierIndex = categoryData.values.indexOf(value);
+      const totalOutliers = categoryData.values.filter(v => isOutlier([v], categoryData.values)).length;
+      const yPos = y(value);
+      const offset = 15 * (outlierIndex - Math.floor(totalOutliers / 2));
+      const offset1 = 17 * (outlierIndex - Math.floor(totalOutliers / 2));
+
+      if (outlier) {
+        if (yPos < 0) {
+          categoryG.append('path')
+            .attr('d', d3.symbol().type(d3.symbolTriangle).size(100)())
+            .attr('transform', `translate(${x1.bandwidth() / 2}, 0) rotate(0)`)
+            .attr('fill', 'red');
+          categoryG.append('text')
+            .attr('x', x1.bandwidth() / 2)
+            .attr('y', 110 - offset1)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'red')
+            .text(value.toFixed(2));
+        } else if (yPos > height) {
+          categoryG.append('path')
+            .attr('d', d3.symbol().type(d3.symbolTriangle).size(100)())
+            .attr('transform', `translate(${x1.bandwidth() / 2}, ${height}) rotate(180)`)
+            .attr('fill', 'red');
+          categoryG.append('text')
+            .attr('x', x1.bandwidth() / 2)
+            .attr('y', height - offset - 25)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'red')
+            .text(value.toFixed(2));
+        } else {
+          categoryG.append('path')
+            .datum(groupData)
+            .attr('d', d3.symbol().type(d3.symbolDiamond).size(50)())
+            .attr('transform', `translate(${x1.bandwidth() / 2},${y(value)})`)
+            .attr('fill', DarkColor(color(groupData.group) as string))
+            .attr('stroke', 'red')
+            .on('mouseover', (event:any, d:any) => {
+           
+              const content = `
+               <div>Value: ${value}</div> 
+               <div>Group: ${groupData.group}</div>
+               <div>Category: ${categoryData.category}</div>
+              `;
+              setTooltipContent(content);
+              tooltip.style('visibility', 'visible');
+            })
+            .on('mousemove', (event:any) => {
+              const tooltip = tooltipRef.current;
+              if (tooltip) {
+                tooltip.style.top = `${event.pageY}px`;
+                tooltip.style.left = `${event.pageX}px`;
+              }
+              
+            })
+            .on('mouseleave', () => {
+              tooltip.style('visibility', 'hidden');
+            });
+        }
+      } else {
+        categoryG.append('path')
+          .datum({ ...groupData, category: categoryData.category, values: categoryData.values })
+          .attr('d', d3.symbol().type(d3.symbolDiamond).size(50)())
+          .attr('transform', `translate(${x1.bandwidth() / 2},${y(value)})`)
+          .attr('fill', DarkColor(color(groupData.group) as string))
+          .attr('stroke', 'black')
+          .on('mouseover', (event:any, d:any) => {
+           
+            const content = `
+             <div>Value: ${value}</div> 
+             <div>Group: ${groupData.group}</div>
+               <div>Category: ${categoryData.category}</div>
+            `;
+            setTooltipContent(content);
+            tooltip.style('visibility', 'visible');
+          })
+          .on('mousemove', (event:any) => {
+            const tooltip = tooltipRef.current;
+            if (tooltip) {
+              tooltip.style.top = `${event.pageY}px`;
+              tooltip.style.left = `${event.pageX}px`;
+            }
+            
+          })
+          .on('mouseleave', () => {
+            tooltip.style('visibility', 'hidden');
+          });
+      }
+    });
+  });
+});
+
+
+        
+   
 
   }, [data, dimensions]);
 
@@ -522,6 +641,11 @@ if(groups.length < 2){
   </div>
   
       <svg ref={svgRef}></svg>
+      <div className="tooltip" ref={tooltipRef}>
+        {tooltipContent && (
+          <div dangerouslySetInnerHTML={{ __html: tooltipContent }} />
+        )}
+      </div>
     </div>
   );
 };

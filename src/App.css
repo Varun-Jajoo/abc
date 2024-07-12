@@ -5,6 +5,16 @@
   overflow-x: auto;
   margin-bottom: 20px;
 }
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 3px;
+  max-width: 300px;
+  z-index: 999;
+}
 
 .table-responsive table {
   width: 100%;
